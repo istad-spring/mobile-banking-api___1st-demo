@@ -1,10 +1,10 @@
-package co.istad.devopsapi;
+package co.istad.mbanking;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class DevopsApiApplicationTests {
+class MobileBankingRestApiTests {
 
     @Test
     void contextLoads() {
