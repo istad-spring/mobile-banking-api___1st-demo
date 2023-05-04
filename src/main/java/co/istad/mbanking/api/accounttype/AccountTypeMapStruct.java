@@ -6,8 +6,8 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface AccountTypeMapStruct {
+    List<AccountTypeDto> toListAccountTypeDto(List<AccountType> model);
+    AccountTypeDto toAccountTypeDto(AccountType model);
 
-    List<AccountTypeDto> toDtoList(List<AccountType> model);
-    AccountTypeDto toDto(AccountType model);
-
+    AccountType fromAccountTypeDto(AccountTypeDto accountTypeDto);
 }
