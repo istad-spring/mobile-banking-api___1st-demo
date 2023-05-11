@@ -20,6 +20,9 @@ repositories {
 
 dependencies {
 
+    // Security
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
     // Pagination
     implementation 'com.github.pagehelper:pagehelper-spring-boot-starter:1.4.6'
 
