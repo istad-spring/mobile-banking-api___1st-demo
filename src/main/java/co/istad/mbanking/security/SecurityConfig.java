@@ -28,25 +28,31 @@ public class SecurityConfig {
     // Define in-memory user
     @Bean
     public InMemoryUserDetailsManager userDetailsService() {
+
         InMemoryUserDetailsManager userDetailsManager = new InMemoryUserDetailsManager();
+
         UserDetails admin = User.builder()
                 .username("admin")
                 .password(encoder().encode("123"))
                 .roles("ADMIN")
                 .build();
+
         UserDetails goldUser = User.builder()
                 .username("gold")
                 .password(encoder().encode("123"))
                 .roles("ADMIN","ACCOUNT")
                 .build();
+
         UserDetails user = User.builder()
                 .username("user")
                 .password(encoder().encode("123"))
                 .roles("USER")
                 .build();
+
         userDetailsManager.createUser(admin);
         userDetailsManager.createUser(goldUser);
         userDetailsManager.createUser(user);
+
         return userDetailsManager;
     }
 
