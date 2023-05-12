@@ -1,5 +1,6 @@
 package co.istad.mbanking.api.user;
 
+import co.istad.mbanking.api.auth.web.RegisterDto;
 import co.istad.mbanking.api.user.web.CreateUserDto;
 import co.istad.mbanking.api.user.web.UpdateUserDto;
 import co.istad.mbanking.api.user.web.UserDto;
@@ -13,4 +14,7 @@ public interface UserMapStruct {
     UserDto userToUserDto(User user);
     User userDtoToUser(UserDto userDto);
     PageInfo<UserDto> userPageInfoToUserDtoPageInfo(PageInfo<User> userPageInfo);
+
+    User registerDtoToUser(RegisterDto registerDto);
+
 }
