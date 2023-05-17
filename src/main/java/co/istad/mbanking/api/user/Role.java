@@ -1,4 +1,4 @@
-package co.istad.mbanking.api.auth;
+package co.istad.mbanking.api.user;
 
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
