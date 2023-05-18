@@ -20,6 +20,15 @@ repositories {
 
 dependencies {
 
+    // Password Validator
+    implementation 'org.passay:passay:1.6.3'
+
+    // Template Engine
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+    // Mail
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
     // Security
     implementation 'org.springframework.boot:spring-boot-starter-security'
 
@@ -27,10 +36,10 @@ dependencies {
     implementation 'com.github.pagehelper:pagehelper-spring-boot-starter:1.4.6'
 
     // Config mapstruct with lombok
-    implementation 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+    annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
     implementation 'org.mapstruct:mapstruct:1.5.5.Final'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
-    compileOnly 'org.projectlombok:lombok'
+    implementation 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
 

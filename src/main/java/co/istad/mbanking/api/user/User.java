@@ -1,14 +1,15 @@
 package co.istad.mbanking.api.user;
 
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.List;
 
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class User {
-
     private Integer id;
     private String name;
     private String gender;
@@ -17,9 +18,13 @@ public class User {
     private Boolean isStudent;
     private Boolean isDeleted;
 
-    // Auth feature
+    // Auth feature info
     private String email;
     private String password;
     private Boolean isVerified;
     private String verifiedCode;
+
+    // User has roles
+    private List<Role> roles;
+
 }
