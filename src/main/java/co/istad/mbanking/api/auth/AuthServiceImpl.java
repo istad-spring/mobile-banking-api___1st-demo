@@ -3,24 +3,41 @@ package co.istad.mbanking.api.auth;
 import co.istad.mbanking.api.auth.web.AuthDto;
 import co.istad.mbanking.api.auth.web.LogInDto;
 import co.istad.mbanking.api.auth.web.RegisterDto;
+import co.istad.mbanking.api.auth.web.TokenDto;
 import co.istad.mbanking.api.user.User;
 import co.istad.mbanking.api.user.UserMapStruct;
+import co.istad.mbanking.security.CustomUserDetails;
 import co.istad.mbanking.util.MailUtil;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthenticationToken;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,29 +48,93 @@ public class AuthServiceImpl implements AuthService {
     private final UserMapStruct userMapStruct;
     private final PasswordEncoder encoder;
     private final MailUtil mailUtil;
+
     private final DaoAuthenticationProvider daoAuthenticationProvider;
+    private final JwtAuthenticationProvider jwtAuthenticationProvider;
+
+    private final JwtEncoder jwtEncoder;
+
+    @Qualifier("jwtRefreshTokenEncoder")
+    private final JwtEncoder jwtRefreshTokenEncoder;
 
     @Value("${spring.mail.username}")
     private String appMail;
+
+
+    private String createRefreshToken(Authentication authentication) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Instant now = Instant.now();
+        JwtClaimsSet claimsSet = JwtClaimsSet.builder()
+                .issuer("self")
+                .issuedAt(now)
+                .expiresAt(now.plus(1, ChronoUnit.HOURS))
+                .subject(authentication.getName())
+                .build();
+        String token = jwtRefreshTokenEncoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
+
+        System.out.println(token);
+
+        return token;
+    }
+
+
+    @Override
+    public AuthDto refreshToken(TokenDto tokenDto) {
+        Authentication authentication = jwtAuthenticationProvider.authenticate(new BearerTokenAuthenticationToken(tokenDto.refreshToken()));
+        Jwt jwt = (Jwt) authentication.getCredentials();
+        System.out.println(jwt);
+        Instant now = Instant.now();
+        JwtClaimsSet claimsSet = JwtClaimsSet.builder()
+                .issuer("self")
+                .issuedAt(now)
+                .expiresAt(now.plus(1, ChronoUnit.HOURS))
+                .subject(authentication.getName())
+                .build();
+        String accessToken = jwtEncoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
+        String refreshToken = jwtRefreshTokenEncoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
+        return new AuthDto(accessToken, refreshToken);
+    }
 
     @Override
     public AuthDto login(LogInDto logInDto) {
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(logInDto.email(), logInDto.password());
-
         authentication = daoAuthenticationProvider.authenticate(authentication);
 
-        log.info("Authentication: {}", authentication);
-        log.info("Authentication: {}", authentication.getName());
-        log.info("Authentication: {}", authentication.getCredentials());
+        Instant now = Instant.now();
 
-        // Logic on basic authorization header
-        String basicAuthFormat = authentication.getName() + ":" + authentication.getCredentials();
-        String encoding = Base64.getEncoder().encodeToString(basicAuthFormat.getBytes());
+        List<SimpleGrantedAuthority> authorities = List.of(
+                new SimpleGrantedAuthority("user")
+        );
 
-        log.info("Basic {}", encoding);
+        /*String scope = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(" "));*/
 
-        return new AuthDto(String.format("Basic %s", encoding));
+        String scope = authorities.stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(" "));
+
+        System.out.println(scope);
+
+        JwtClaimsSet claimsSet = JwtClaimsSet.builder()
+                .issuer("self")
+                .issuedAt(now)
+                .expiresAt(now.plus(1, ChronoUnit.HOURS))
+                .subject(authentication.getName())
+                .claim("scope", scope)
+                .build();
+
+        String accessToken = jwtEncoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
+        String refreshToken = jwtRefreshTokenEncoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
+
+        return new AuthDto(accessToken, refreshToken);
+
+        // Logic on basic authorization header:
+        // String basicAuthFormat = authentication.getName() + ":" + authentication.getCredentials();
+        // String encoding = Base64.getEncoder().encodeToString(basicAuthFormat.getBytes());
+
+        //return new AuthDto(String.format("Basic %s", encoding));
     }
 
     @Transactional

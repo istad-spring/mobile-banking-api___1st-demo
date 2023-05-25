@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -77,6 +78,7 @@ public class UserRestController {
     }
 
     @GetMapping
+    // @PreAuthorize("hasAuthority('SCOPE_user')")
     public BaseRest<?> findAllUsers(@RequestParam(name = "page", required = false, defaultValue = "1") int page,
                                     @RequestParam(name = "limit", required = false, defaultValue = "20") int limit,
                                     @RequestParam(name = "name", required = false, defaultValue = "") String name) {

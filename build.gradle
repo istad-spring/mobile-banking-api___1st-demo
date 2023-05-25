@@ -20,6 +20,9 @@ repositories {
 
 dependencies {
 
+    // JWT
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+
     // Password Validator
     implementation 'org.passay:passay:1.6.3'
 
@@ -48,8 +51,4 @@ dependencies {
     implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.0'
     runtimeOnly 'org.postgresql:postgresql'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-}
-
-tasks.named('test') {
-    useJUnitPlatform()
 }
