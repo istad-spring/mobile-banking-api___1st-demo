@@ -20,6 +20,9 @@ repositories {
 
 dependencies {
 
+    // JWT
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+
     // Password Validator
     implementation 'org.passay:passay:1.6.3'
 

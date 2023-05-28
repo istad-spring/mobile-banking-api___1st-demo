@@ -1,5 +1,6 @@
-package co.istad.mbanking.api.auth;
+package co.istad.mbanking.api.auth.web;
 
+import co.istad.mbanking.api.auth.AuthService;
 import co.istad.mbanking.api.auth.web.AuthDto;
 import co.istad.mbanking.api.auth.web.LogInDto;
 import co.istad.mbanking.api.auth.web.RegisterDto;
