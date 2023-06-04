@@ -136,7 +136,7 @@ public class AuthServiceImpl implements AuthService {
         JwtClaimsSet accessTokenClaimsSet = JwtClaimsSet.builder()
                 .issuer("self")
                 .issuedAt(now)
-                .expiresAt(now.plus(1, ChronoUnit.SECONDS))
+                .expiresAt(now.plus(1, ChronoUnit.DAYS))
                 .subject(authentication.getName())
                 .claim("scope", scope)
                 .build();
