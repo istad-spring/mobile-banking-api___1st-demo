@@ -64,6 +64,31 @@ public class SecurityConfig {
     private final CustomJwtConverter customJwtConverter;
     private final KeyUtil keyUtil;
 
+    // Define in-memory user
+    /*@Bean
+    public InMemoryUserDetailsManager userDetailsService() {
+        InMemoryUserDetailsManager userDetailsManager = new InMemoryUserDetailsManager();
+        UserDetails admin = User.builder()
+                .username("admin")
+                .password(encoder.encode("123"))
+                .roles("ADMIN")
+                .build();
+        UserDetails goldUser = User.builder()
+                .username("gold")
+                .password(encoder.encode("123"))
+                .roles("ADMIN","ACCOUNT")
+                .build();
+        UserDetails user = User.builder()
+                .username("user")
+                .password(encoder.encode("123"))
+                .roles("USER")
+                .build();
+        userDetailsManager.createUser(admin);
+        userDetailsManager.createUser(goldUser);
+        userDetailsManager.createUser(user);
+        return userDetailsManager;
+    }*/
+
     @Bean
     public DaoAuthenticationProvider daoAuthenticationProvider() {
 
@@ -105,7 +130,14 @@ public class SecurityConfig {
         // Authorize URL mapping
         http.authorizeHttpRequests(auth -> {
             auth.requestMatchers("/api/v1/auth/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll();
-            auth.requestMatchers("/api/v1/users/**").hasAuthority("SCOPE_user");
+            auth.requestMatchers(HttpMethod.GET, "/api/v1/users/**").hasAuthority("SCOPE_user:read");
+            auth.requestMatchers(HttpMethod.POST, "/api/v1/users/**").hasAuthority("SCOPE_user:write");
+            auth.requestMatchers(HttpMethod.DELETE, "/api/v1/users/**").hasAuthority("SCOPE_user:delete");
+            auth.requestMatchers(HttpMethod.PUT, "/api/v1/users/**").hasAuthority("SCOPE_user:update");
+            auth.requestMatchers(HttpMethod.GET, "/api/v1/accounts/**").hasAuthority("SCOPE_account:read");
+            auth.requestMatchers(HttpMethod.POST, "/api/v1/accounts/**").hasAuthority("SCOPE_account:write");
+            auth.requestMatchers(HttpMethod.DELETE, "/api/v1/accounts/**").hasAuthority("SCOPE_account:delete");
+            auth.requestMatchers(HttpMethod.PUT, "/api/v1/accounts/**").hasAuthority("SCOPE_account:update");
             auth.anyRequest().authenticated();
         });
 
@@ -122,6 +154,10 @@ public class SecurityConfig {
                 .accessDeniedHandler(customAccessDeniedHandler)
         );
 
+        // Exception
+        http.exceptionHandling()
+                /*.accessDeniedHandler()*/
+                .authenticationEntryPoint(customAuthenticationEntryPoint);
         return http.build();
     }
 
@@ -139,6 +175,15 @@ public class SecurityConfig {
     /*@Bean
     @Primary
     public RSAKey accessTokenRSAKey(KeyPair keyPair) {
+    @Bean
+    public KeyPair keyPair() throws NoSuchAlgorithmException {
+        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+        keyPairGenerator.initialize(2048);
+        return keyPairGenerator.generateKeyPair();
+    }
+
+    @Bean
+    public RSAKey rsaKey(KeyPair keyPair) {
         return new RSAKey.Builder((RSAPublicKey) keyPair.getPublic())
                 .privateKey(keyPair.getPrivate())
                 .keyID(UUID.randomUUID().toString())
