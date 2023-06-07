@@ -9,18 +9,15 @@ import org.mapstruct.Mapping;
 
 import java.util.List;
 
-@Mapper(uses = AccountTypeMapStruct.class)
+@Mapper(uses = {AccountTypeMapStruct.class})
 public interface AccountMapStruct {
 
-    @Mapping(source = "accountType.name", target = "accountTypeName")
-    AccountDto toAccountDto(Account account, AccountType accountType);
+    AccountDto toAccountDto(Account account);
 
-    @Mapping(source = "accountTypeName", target = "accountType.name")
+    List<AccountDto> toAccountDtoList(List<Account> accounts);
+
     Account fromAccountDto(AccountDto accountDto);
 
-
-    @Mapping(source = "accounts.accountType.name", target = "accountTypeName")
-    List<AccountDto> toAccountDtoList(List<Account> accounts, AccountType accountType);
 
     PageInfo<AccountDto> toAccountDtoPageInfo(PageInfo<Account> account);
 

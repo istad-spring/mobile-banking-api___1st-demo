@@ -6,10 +6,15 @@ import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @Mapper
 public interface AccountMapper {
+
+    @SelectProvider(AccountProvider.class)
+    @ResultMap(value = "accountResultMap")
+    Optional<Account> selectByNameOrNo(String accountNameOrNo);
 
     @SelectProvider(AccountProvider.class)
     @Results(id = "accountResultMap", value = {

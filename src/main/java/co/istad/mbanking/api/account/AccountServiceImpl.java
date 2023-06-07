@@ -1,15 +1,14 @@
 package co.istad.mbanking.api.account;
 
 import co.istad.mbanking.api.account.web.AccountDto;
+import co.istad.mbanking.api.account.web.AccountNameOrNoDto;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -20,24 +19,20 @@ public class AccountServiceImpl implements AccountService {
     private final AccountMapStruct accountMapStruct;
 
     @Override
+    public AccountDto findAccountByNoOrName(AccountNameOrNoDto accountNameOrNoDto) {
+
+        log.info("Account Name or No: {}", accountNameOrNoDto.nameOrNo());
+
+        Account account = accountMapper.selectByNameOrNo(accountNameOrNoDto.nameOrNo())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account Name or No hasn't been found"));
+
+        return accountMapStruct.toAccountDto(account);
+    }
+
+    @Override
     public PageInfo<AccountDto> findAllAccounts(int page, int limit) {
 
         PageInfo<Account> accountPageInfo = PageHelper.startPage(page, limit).doSelectPageInfo(accountMapper::select);
-
-        /*List<AccountDto> accountDtoList = accountPageInfo.getList().stream()
-                .map(new Function<Account, AccountDto>() {
-                    @Override
-                    public AccountDto apply(Account account) {
-                        return AccountDto.builder()
-                                .accountNo(account.getAccountNo())
-                                .accountName(account.getAccountName())
-                                .pin(account.getPin())
-                                .accountTypeName(account.getAccountType().getName())
-                                .build();
-                    }
-                })
-                .toList();*/
-
 
         return accountMapStruct.toAccountDtoPageInfo(accountPageInfo);
     }

@@ -10,5 +10,5 @@ public record AccountDto(String accountNo,
                          String accountName,
                          String pin,
                          BigDecimal transferLimit,
-                         String accountTypeName) {
+                         AccountTypeDto accountType) {
 }
