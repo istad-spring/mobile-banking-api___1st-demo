@@ -1,4 +1,4 @@
-package co.istad.mbanking.api.user.validator.password;
+package co.istad.mbanking.constraint.accountno;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
@@ -8,12 +8,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Constraint(validatedBy = PasswordConstraintValidator.class)
+@Constraint(validatedBy = AccountNoConstraintValidator.class)
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.METHOD})
-public @interface Password {
+public @interface ValidAccountNo {
 
-    String message() default "Your password is so weak!";
+    String message() default "Account no is already existed!";
 
     Class<?>[] groups() default { };
 

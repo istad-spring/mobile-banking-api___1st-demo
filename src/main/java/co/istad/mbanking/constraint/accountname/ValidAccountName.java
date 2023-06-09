@@ -1,4 +1,4 @@
-package co.istad.mbanking.api.user.validator.role;
+package co.istad.mbanking.constraint.accountname;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
@@ -8,12 +8,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Constraint(validatedBy = RoleIdConstraintValidator.class)
+@Constraint(validatedBy = AccountNameConstraintValidator.class)
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.METHOD})
-public @interface RoleIdConstraint {
+public @interface ValidAccountName {
 
-    String message() default "Role ID is not existed!";
+    String message() default "Account number is already existed!";
 
     Class<?>[] groups() default { };
 

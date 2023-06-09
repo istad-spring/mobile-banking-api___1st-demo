@@ -21,4 +21,5 @@ public interface AccountTypeMapper {
 
     @UpdateProvider(type = AccountTypeProvider.class, method = "buildUpdateSql")
     void update(@Param("ac") AccountType accountType);
+
 }

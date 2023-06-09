@@ -14,11 +14,20 @@ configurations {
     }
 }
 
+compileJava {
+    options.compilerArgs += [
+            '-Amapstruct.defaultComponentModel=spring'
+    ]
+}
+
 repositories {
     mavenCentral()
 }
 
 dependencies {
+
+    // Swagger UI
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
 
     // JWT
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'

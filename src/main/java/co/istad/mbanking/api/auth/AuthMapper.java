@@ -1,5 +1,6 @@
 package co.istad.mbanking.api.auth;
 
+import co.istad.mbanking.api.user.Authority;
 import co.istad.mbanking.api.user.Role;
 import co.istad.mbanking.api.user.User;
 import org.apache.ibatis.annotations.*;
@@ -45,5 +46,12 @@ public interface AuthMapper {
     Optional<User> loadUserByUsername(@Param("email") String email);
 
     @SelectProvider(type = AuthProvider.class, method = "buildLoadUserRolesSql")
+    @Result(column = "id", property = "authorities",
+        many = @Many(select = "loadUserAuthorities"))
     List<Role> loadUserRoles(Integer userId);
+
+    @SelectProvider(type = AuthProvider.class, method = "buildLoadUserAuthoritiesSql")
+    List<Authority> loadUserAuthorities(Integer roleId);
+
+
 }

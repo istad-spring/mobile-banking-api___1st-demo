@@ -29,12 +29,17 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -45,13 +50,14 @@ import java.util.stream.Collectors;
 public class AuthServiceImpl implements AuthService {
 
     private final AuthMapper authMapper;
+
     private final UserMapStruct userMapStruct;
-    private final PasswordEncoder encoder;
+
     private final MailUtil mailUtil;
 
+    private final PasswordEncoder encoder;
     private final DaoAuthenticationProvider daoAuthenticationProvider;
     private final JwtAuthenticationProvider jwtAuthenticationProvider;
-
     private final JwtEncoder jwtEncoder;
 
     private JwtEncoder jwtRefreshTokenEncoder;
@@ -68,30 +74,20 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthDto refreshToken(TokenDto tokenDto) {
 
-        log.info("Token DTO: {}", tokenDto);
-
         Authentication authentication = jwtAuthenticationProvider.authenticate(new BearerTokenAuthenticationToken(tokenDto.refreshToken()));
 
         Jwt jwt = (Jwt) authentication.getCredentials();
-        System.out.println(jwt);
 
         Instant now = Instant.now();
 
-        List<SimpleGrantedAuthority> authorities = List.of(
-                new SimpleGrantedAuthority("user")
-        );
-
-        String scope = authorities.stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(" "));
-
+        log.info("Scope: {}", jwt.getClaimAsString("scope"));
 
         JwtClaimsSet accessTokenClaimsSet = JwtClaimsSet.builder()
                 .issuer("self")
                 .issuedAt(now)
                 .expiresAt(now.plus(1, ChronoUnit.SECONDS))
                 .subject(authentication.getName())
-                .claim("scope", scope)
+                .claim("scope", jwt.getClaimAsString("scope"))
                 .build();
 
         JwtClaimsSet refreshTokenClaimsSet = JwtClaimsSet.builder()
@@ -99,7 +95,7 @@ public class AuthServiceImpl implements AuthService {
                 .issuedAt(now)
                 .expiresAt(now.plus(30, ChronoUnit.DAYS))
                 .subject(authentication.getName())
-                .claim("scope", scope)
+                .claim("scope", jwt.getClaimAsString("scope"))
                 .build();
 
 
@@ -117,26 +113,18 @@ public class AuthServiceImpl implements AuthService {
 
         Instant now = Instant.now();
 
-        List<SimpleGrantedAuthority> authorities = List.of(
-                new SimpleGrantedAuthority("user")
-        );
 
-
-        /*String scope = authentication.getAuthorities().stream()
+        String scope = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(" "));*/
-
-        String scope = authorities.stream()
-                .map(GrantedAuthority::getAuthority)
+                .filter(authority -> !authority.startsWith("ROLE_"))
                 .collect(Collectors.joining(" "));
 
-        System.out.println(scope);
-        System.out.println(authentication.getName());
+        log.info("Retrieve scopes when getting token: {}", scope);
 
         JwtClaimsSet accessTokenClaimsSet = JwtClaimsSet.builder()
                 .issuer("self")
                 .issuedAt(now)
-                .expiresAt(now.plus(1, ChronoUnit.SECONDS))
+                .expiresAt(now.plus(1, ChronoUnit.DAYS))
                 .subject(authentication.getName())
                 .claim("scope", scope)
                 .build();

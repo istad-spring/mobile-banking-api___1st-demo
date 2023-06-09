@@ -1,4 +1,4 @@
-package co.istad.mbanking.api.user.validator.role;
+package co.istad.mbanking.constraint.role;
 
 import co.istad.mbanking.api.user.UserMapper;
 import jakarta.validation.ConstraintValidator;

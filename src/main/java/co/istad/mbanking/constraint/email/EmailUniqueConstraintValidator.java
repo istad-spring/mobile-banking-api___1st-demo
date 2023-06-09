@@ -1,4 +1,4 @@
-package co.istad.mbanking.api.user.validator.email;
+package co.istad.mbanking.constraint.email;
 
 import co.istad.mbanking.api.user.UserMapper;
 import jakarta.validation.ConstraintValidator;

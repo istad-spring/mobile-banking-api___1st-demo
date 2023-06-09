@@ -1,4 +1,4 @@
-package co.istad.mbanking.api.user.validator.password;
+package co.istad.mbanking.constraint.password;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
