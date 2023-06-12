@@ -21,6 +21,20 @@ public class AuthRestController {
 
     private final AuthService authService;
 
+    @PostMapping("/refresh")
+    public BaseRest<?> refreshToken(@RequestBody TokenDto tokenDto) {
+
+        AuthDto authDto = authService.refreshToken(tokenDto);
+
+        return BaseRest.builder()
+                .status(true)
+                .code(HttpStatus.OK.value())
+                .message("Token has been refreshed")
+                .timestamp(LocalDateTime.now())
+                .data(authDto)
+                .build();
+    }
+
     @PostMapping("/login")
     public BaseRest<?> login(@Valid @RequestBody LogInDto logInDto) {
 
