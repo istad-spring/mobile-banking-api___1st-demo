@@ -12,8 +12,6 @@ public record NewAccountDto(@ValidAccountNo
                             @NotBlank String accountName,
                             String profile,
                             @NotBlank String pin,
-                            @ValidAccountPhoneNumber
-                            @NotBlank String phoneNumber,
                             @NotNull Integer accountTypeId,
                             @NotNull Integer userId) {
 }
