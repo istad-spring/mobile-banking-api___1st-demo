@@ -87,4 +87,5 @@ public class UserServiceImpl implements UserService {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND,
                 String.format("User with %d is not found", id));
     }
+
 }

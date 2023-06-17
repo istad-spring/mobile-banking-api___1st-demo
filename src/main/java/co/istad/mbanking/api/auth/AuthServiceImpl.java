@@ -1,12 +1,8 @@
 package co.istad.mbanking.api.auth;
 
-import co.istad.mbanking.api.auth.web.AuthDto;
-import co.istad.mbanking.api.auth.web.LogInDto;
-import co.istad.mbanking.api.auth.web.RegisterDto;
-import co.istad.mbanking.api.auth.web.TokenDto;
+import co.istad.mbanking.api.auth.web.*;
 import co.istad.mbanking.api.user.User;
 import co.istad.mbanking.api.user.UserMapStruct;
-import co.istad.mbanking.security.CustomUserDetails;
 import co.istad.mbanking.util.MailUtil;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
@@ -15,31 +11,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
-import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
-import org.springframework.security.oauth2.jwt.JwtClaimsSet;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -61,18 +49,16 @@ public class AuthServiceImpl implements AuthService {
     private final JwtEncoder jwtEncoder;
 
     private JwtEncoder jwtRefreshTokenEncoder;
+    @Value("${spring.mail.username}")
+    private String appMail;
 
     @Autowired
     public void setJwtRefreshTokenEncoder(@Qualifier("jwtRefreshTokenEncoder") JwtEncoder jwtRefreshTokenEncoder) {
         this.jwtRefreshTokenEncoder = jwtRefreshTokenEncoder;
     }
 
-    @Value("${spring.mail.username}")
-    private String appMail;
-
-
     @Override
-    public AuthDto refreshToken(TokenDto tokenDto) {
+    public TokenDto refreshToken(RefreshTokenDto tokenDto) {
 
         Authentication authentication = jwtAuthenticationProvider.authenticate(new BearerTokenAuthenticationToken(tokenDto.refreshToken()));
 
@@ -85,7 +71,7 @@ public class AuthServiceImpl implements AuthService {
         JwtClaimsSet accessTokenClaimsSet = JwtClaimsSet.builder()
                 .issuer("self")
                 .issuedAt(now)
-                .expiresAt(now.plus(1, ChronoUnit.SECONDS))
+                .expiresAt(now.plus(1, ChronoUnit.MINUTES))
                 .subject(authentication.getName())
                 .claim("scope", jwt.getClaimAsString("scope"))
                 .build();
@@ -93,7 +79,7 @@ public class AuthServiceImpl implements AuthService {
         JwtClaimsSet refreshTokenClaimsSet = JwtClaimsSet.builder()
                 .issuer("self")
                 .issuedAt(now)
-                .expiresAt(now.plus(30, ChronoUnit.DAYS))
+                .expiresAt(now.plus(5, ChronoUnit.MINUTES))
                 .subject(authentication.getName())
                 .claim("scope", jwt.getClaimAsString("scope"))
                 .build();
@@ -102,7 +88,7 @@ public class AuthServiceImpl implements AuthService {
         String accessToken = jwtEncoder.encode(JwtEncoderParameters.from(accessTokenClaimsSet)).getTokenValue();
         String refreshToken = jwtRefreshTokenEncoder.encode(JwtEncoderParameters.from(refreshTokenClaimsSet)).getTokenValue();
 
-        return new AuthDto(accessToken, refreshToken);
+        return new TokenDto(accessToken, refreshToken);
     }
 
     @Override
@@ -113,18 +99,23 @@ public class AuthServiceImpl implements AuthService {
 
         Instant now = Instant.now();
 
-
         String scope = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .filter(authority -> !authority.startsWith("ROLE_"))
                 .collect(Collectors.joining(" "));
+
+        List<String> authorities = authentication.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .filter(s -> !s.startsWith("ROLE_"))
+                .toList();
 
         log.info("Retrieve scopes when getting token: {}", scope);
 
         JwtClaimsSet accessTokenClaimsSet = JwtClaimsSet.builder()
                 .issuer("self")
                 .issuedAt(now)
-                .expiresAt(now.plus(1, ChronoUnit.DAYS))
+                .expiresAt(now.plus(1, ChronoUnit.MINUTES))
                 .subject(authentication.getName())
                 .claim("scope", scope)
                 .build();
@@ -132,7 +123,7 @@ public class AuthServiceImpl implements AuthService {
         JwtClaimsSet refreshTokenClaimsSet = JwtClaimsSet.builder()
                 .issuer("self")
                 .issuedAt(now)
-                .expiresAt(now.plus(30, ChronoUnit.DAYS))
+                .expiresAt(now.plus(5, ChronoUnit.MINUTES))
                 .subject(authentication.getName())
                 .claim("scope", scope)
                 .build();
@@ -140,7 +131,7 @@ public class AuthServiceImpl implements AuthService {
         String accessToken = jwtEncoder.encode(JwtEncoderParameters.from(accessTokenClaimsSet)).getTokenValue();
         String refreshToken = jwtRefreshTokenEncoder.encode(JwtEncoderParameters.from(refreshTokenClaimsSet)).getTokenValue();
 
-        return new AuthDto(accessToken, refreshToken);
+        return new AuthDto(authentication.getName(), authorities, accessToken, refreshToken);
 
         // Logic on basic authorization header:
         // String basicAuthFormat = authentication.getName() + ":" + authentication.getCredentials();
@@ -210,5 +201,14 @@ public class AuthServiceImpl implements AuthService {
             authMapper.verify(email, verifiedCode);
         }
 
+    }
+
+    @Override
+    public LoggedInProfileDto getProfile(Authentication authentication) {
+
+        User user = authMapper.loadUserByUsername(authentication.getName()).orElseThrow(()
+                -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Your profile is unavailable!"));
+
+        return userMapStruct.userToLoggedInProfileDto(user);
     }
 }

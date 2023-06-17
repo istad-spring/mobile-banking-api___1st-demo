@@ -1,13 +1,12 @@
 package co.istad.mbanking.api.auth;
 
-import co.istad.mbanking.api.auth.web.AuthDto;
-import co.istad.mbanking.api.auth.web.LogInDto;
-import co.istad.mbanking.api.auth.web.RegisterDto;
-import co.istad.mbanking.api.auth.web.TokenDto;
+import co.istad.mbanking.api.auth.web.*;
+import co.istad.mbanking.api.user.web.UserDto;
+import org.springframework.security.core.Authentication;
 
 public interface AuthService {
 
-    AuthDto refreshToken(TokenDto tokenDto);
+    TokenDto refreshToken(RefreshTokenDto tokenDto);
 
     AuthDto login(LogInDto logInDto);
 
@@ -16,5 +15,7 @@ public interface AuthService {
     void verify(String email);
 
     void checkVerify(String email, String verifiedCode);
+
+    LoggedInProfileDto getProfile(Authentication authentication);
 
 }

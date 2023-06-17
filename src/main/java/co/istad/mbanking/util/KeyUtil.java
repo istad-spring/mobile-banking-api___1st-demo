@@ -96,9 +96,9 @@ public class KeyUtil {
             }
         } else {
 
-            if (Arrays.asList(environment.getActiveProfiles()).contains("prod")) {
+            /*if (Arrays.asList(environment.getActiveProfiles()).contains("prod")) {
                 throw new RuntimeException("Public and private keys don't exist.");
-            }
+            }*/
 
         }
 

@@ -1,17 +1,22 @@
 package co.istad.mbanking.api.auth.web;
 
 import co.istad.mbanking.api.auth.AuthService;
-import co.istad.mbanking.api.auth.web.AuthDto;
-import co.istad.mbanking.api.auth.web.LogInDto;
-import co.istad.mbanking.api.auth.web.RegisterDto;
+import co.istad.mbanking.api.user.User;
+import co.istad.mbanking.api.user.UserService;
+import co.istad.mbanking.api.user.web.UserDto;
 import co.istad.mbanking.base.BaseRest;
+import co.istad.mbanking.security.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.time.LocalDateTime;
 
 @RestController
@@ -21,34 +26,46 @@ import java.time.LocalDateTime;
 public class AuthRestController {
 
     private final AuthService authService;
+    private final UserService userService;
+
+    @GetMapping("/me")
+    public BaseRest<?> getAuthProfile(Authentication authentication) {
+
+        log.info("Auth Name: {}", authentication.getPrincipal());
+        log.info("Auth Credentials: {}", authentication.getCredentials());
+        log.info("Auth Authorities: {}", authentication.getAuthorities());
+        log.info("Auth Details: {}", authentication.getDetails());
+
+        LoggedInProfileDto loggedInProfileDto = authService.getProfile(authentication);
+
+        return BaseRest.builder()
+                .status(true)
+                .code(HttpStatus.OK.value())
+                .message("You have retrieved profile successfully")
+                .timestamp(LocalDateTime.now())
+                .data(loggedInProfileDto)
+                .build();
+    }
 
     @PostMapping("/token")
-    public BaseRest<?> refreshToken(@RequestBody TokenDto tokenDto) {
-
-        // call service
-        AuthDto authDto = authService.refreshToken(tokenDto);
-
+    public BaseRest<?> refreshToken(@RequestBody RefreshTokenDto tokenDto) {
         return BaseRest.builder()
                 .status(true)
                 .code(HttpStatus.OK.value())
                 .message("Token has been refreshed successfully")
                 .timestamp(LocalDateTime.now())
-                .data(authDto)
+                .data(authService.refreshToken(tokenDto))
                 .build();
     }
 
     @PostMapping("/login")
     public BaseRest<?> login(@Valid @RequestBody LogInDto logInDto) {
-
-        // call service
-        AuthDto authDto = authService.login(logInDto);
-
         return BaseRest.builder()
                 .status(true)
                 .code(HttpStatus.OK.value())
                 .message("You have been logged in successfully")
                 .timestamp(LocalDateTime.now())
-                .data(authDto)
+                .data(authService.login(logInDto))
                 .build();
     }
 

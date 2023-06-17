@@ -61,7 +61,6 @@ public class SecurityConfig {
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
     private final CustomAuthenticationFailureHandler customAuthenticationFailureHandler;
-    private final CustomJwtConverter customJwtConverter;
     private final KeyUtil keyUtil;
 
     // Define in-memory user
@@ -101,7 +100,7 @@ public class SecurityConfig {
 
     @Bean
     @Qualifier("jwtRefreshTokenAuthProvider")
-    public JwtAuthenticationProvider jwtAuthenticationProvider() throws NoSuchAlgorithmException, JOSEException {
+    public JwtAuthenticationProvider jwtAuthenticationProvider() {
 
         JwtAuthenticationProvider provider = new JwtAuthenticationProvider(jwtRefreshTokenDecoder());
         provider.setJwtAuthenticationConverter(jwtAuthenticationConverter());
@@ -126,6 +125,9 @@ public class SecurityConfig {
 
         // Disable CSRF
         http.csrf(AbstractHttpConfigurer::disable);
+
+        // Disable CORS
+        http.cors(AbstractHttpConfigurer::disable);
 
         // Authorize URL mapping
         http.authorizeHttpRequests(auth -> {
@@ -154,10 +156,6 @@ public class SecurityConfig {
                 .accessDeniedHandler(customAccessDeniedHandler)
         );
 
-        // Exception
-        http.exceptionHandling()
-                /*.accessDeniedHandler()*/
-                .authenticationEntryPoint(customAuthenticationEntryPoint);
         return http.build();
     }
 
