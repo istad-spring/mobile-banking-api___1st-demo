@@ -26,7 +26,6 @@ import java.time.LocalDateTime;
 public class AuthRestController {
 
     private final AuthService authService;
-    private final UserService userService;
 
     @GetMapping("/me")
     public BaseRest<?> getAuthProfile(Authentication authentication) {

@@ -209,6 +209,8 @@ public class AuthServiceImpl implements AuthService {
         User user = authMapper.loadUserByUsername(authentication.getName()).orElseThrow(()
                 -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Your profile is unavailable!"));
 
+        log.info("User: {}", user);
+
         return userMapStruct.userToLoggedInProfileDto(user);
     }
 }
